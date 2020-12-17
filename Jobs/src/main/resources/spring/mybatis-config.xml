@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+ <typeAliases>
+	<typeAlias type="com.project.jobs.domain.UserVO" alias="User"/>
+	<typeAlias type="com.project.jobs.domain.RecruitVO" alias="Recruit"/>
+	<typeAlias type="com.project.jobs.domain.JobhunterVO" alias="Jobhunter"/>
+	<typeAlias type="com.project.jobs.domain.NewsletterVO" alias="Newsletter"/>
+ </typeAliases>
+ 
+  <mappers>
+  	<mapper resource="mapper/UserMapper.xml"/>
+  	<mapper resource="mapper/RecruitMapper.xml"/>
+  	<mapper resource="mapper/JobhunterMapper.xml"/>
+  	<mapper resource="mapper/NewsletterMapper.xml"/>
+  </mappers>
+</configuration>

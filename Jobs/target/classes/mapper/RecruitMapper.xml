@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.project.jobs.dao.RecruitDao">    
+
+	 <sql id="whereClause"><!-- 조각엘리먼트 -->
+   		<if test="searchtype != null and searchkeyword !=''">
+	   		 <where>	
+	   		 	<choose>
+	   		 		<when test="searchtype==1"><!-- searchtype이 글제목 -->
+	   		 			LOWER(jr.subject) like LOWER('%'||#{searchkeyword}||'%')
+	   		 		</when>
+	   		 		<when test="searchtype==2"><!-- searchtype이 기업명 -->
+	   		 			LOWER(ju.name) like LOWER('%'||#{searchkeyword}||'%')
+	   		 		</when>
+	   		 		<when test="searchtype==3"><!-- searchtype이 글내용 -->
+	   		 			LOWER(jr.content) like LOWER('%'||#{searchkeyword}||'%')
+	   		 		</when>
+	   		 		<when test="searchtype==4"><!-- searchtype이 글내용, 글제목 -->
+	   		 			LOWER(jr.content) like LOWER('%'||#{searchkeyword}||'%') or LOWER(jr.subject) like LOWER('%'||#{searchkeyword}||'%')
+	   		 		</when>
+	   		 	</choose>
+	   		 </where>
+   		 </if>
+   </sql>
+	
+	<!-- 채용정보글 작성 -->
+	<insert id="insertRecruit" parameterType="Recruit">
+		<selectKey keyProperty="num" resultType="int" order="BEFORE">
+			select jobs_recruitboard_seq.nextval from dual
+		</selectKey>
+		insert into jobs_recruitboard values(#{num},#{type:VARCHAR},#{career}, 
+		#{subject},#{content:VARCHAR},sysdate,#{readnum:VARCHAR},#{filename:VARCHAR}
+		,#{filesize:VARCHAR},#{idx_fk})
+	</insert>
+	
+	<!-- 채용정보목록 -->
+	<select id="selectRecruitAll" resultType="Recruit" parameterType="map">
+		select * from (select row_number() over(order by jr.num desc) rn, jr.*, ju.*
+		FROM jobs_recruitboard jr JOIN jobs_user ju ON jr.idx_fk = ju.idx
+		<include refid="whereClause"/>
+		)
+		where rn between #{start} and #{end}
+	</select>
+	
+	<!-- 채용정보 -->
+	<select id="selectByNum" parameterType="int" resultType="Recruit">
+		select jr.*, ju.idx, ju.userid, CryptString.decrypt(ju.pwd, 'key') pwd, ju.name, ju.imagename, ju.info, ju.state, ju.indate, ju.outdate 
+		from jobs_recruitboard jr JOIN jobs_user ju ON jr.idx_fk = ju.idx where num=#{num}
+	</select>
+	
+	<!-- 조회수 증가 -->
+   <update id="updateReadnum" parameterType="int">
+   	update jobs_recruitboard set readnum = readnum+1 where num = #{num}
+   </update>
+   
+   <!-- 조회수 top5 목록 -->
+   <select id="selectRecruitTop5" resultType="Recruit" parameterType="int">
+		select * from(select rownum rn, a.* from(select * FROM jobs_recruitboard jr JOIN jobs_user ju ON jr.idx_fk = ju.idx ORDER BY readnum desc) a) where rn between 1 and 5
+	</select>
+	
+	<!-- 최근글 6개 목록 -->
+    <select id="selectRecruitlatest" resultType="Recruit" parameterType="int">
+		select * from(select rownum rn, a.* from(select * FROM jobs_recruitboard jr JOIN jobs_user ju ON jr.idx_fk = ju.idx ORDER BY num desc) a) where rn between 1 and 6
+	</select>
+	
+	<!-- 글 삭제 -->
+	<delete id="deleteRecruit" parameterType="int">
+		delete from jobs_recruitboard where num=#{num}
+	</delete>
+	
+	<!-- 글 수정 파일 첨부했을때 -->
+	<update id="updateRecruitF" parameterType="Recruit">
+		update jobs_recruitboard set type=#{type:VARCHAR}, career=#{career:VARCHAR}, subject=#{subject:VARCHAR}, content=#{content:VARCHAR}, filename=#{filename:VARCHAR},filesize=#{filesize:VARCHAR} where num=#{num:NUMERIC}
+	</update>
+	
+	<!-- 글 수정 파일 첨부 안했을때 -->
+	<update id="updateRecruit" parameterType="Recruit">
+ 		update jobs_recruitboard set type=#{type:VARCHAR}, career=#{career:VARCHAR}, subject=#{subject:VARCHAR}, content=#{content:VARCHAR} where num=#{num:NUMERIC}
+	</update>
+	
+	<!-- 각 분야별 카운트세기 -->
+	<select id="selectCount" resultType="Recruit" parameterType="String">
+		select 
+			count(num) as totalcount,
+			count(case when type='1' then 1 end) as type1,
+			count(case when type='2' then 1 end) as type2,
+			count(case when type='3' then 1 end) as type3,
+			count(case when career='1' then 1 end) as career1,
+			count(case when career='2' then 1 end) as career2,
+			count(case when career='3' then 1 end) as career3
+		from jobs_recruitboard
+	</select>
+	
+	<!-- 카테고리 관련 -->
+	<select id="selectCategory2" resultType="Recruit" parameterType="map">
+		select * from jobs_recruitboard jr JOIN jobs_user ju ON jr.idx_fk = ju.idx
+		<where>
+			<if test="colname=='type'">
+				type=#{category} ORDER BY num desc
+			</if>
+			<if test="colname=='career'">
+				career=#{category} ORDER BY num desc
+			</if>
+		</where>
+	</select>
+	
+	 <!-- 글목록 관련 (게시물 수 가져오기) -->
+   <select id="getTotalCount" resultType="int" parameterType="map">
+   		select count(num) from jobs_recruitboard jr JOIN jobs_user ju ON jr.idx_fk = ju.idx
+   		<include refid="whereClause"/>
+   </select>
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+

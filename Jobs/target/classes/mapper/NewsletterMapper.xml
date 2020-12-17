@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.project.jobs.dao.NewsletterDao">
+
+
+   								
+	<!-- 이메일 등록하기 -->
+	<insert id="insertnewsletter" parameterType="Newsletter">
+		<selectKey keyProperty="idx" resultType="int" order="BEFORE">
+			select jobs_newsletter_seq.nextval from dual
+		</selectKey>
+		insert into jobs_newsletter values(#{idx}, #{email})
+	</insert>
+	
+	<!-- 이메일 목록 가져오기 -->
+	<select id="getNewsletter" resultType="Newsletter">
+		select * from jobs_newsletter
+	</select>
+	
+	<!-- 이메일 삭제하기 -->
+	<delete id="deleteNewsletter" parameterType="int">
+		delete from jobs_newsletter where idx=#{idx}
+	</delete>
+	
+
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
